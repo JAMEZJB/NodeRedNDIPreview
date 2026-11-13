@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node: regenerable, never committed.
+node_modules/
+npm-debug.log*
+*.tgz
+
+# Native build output: never committed.
+native/build/
+build/
+
+# NDI SDK: never committed, never distributed. The SDK is used at build time only, from where its own installer puts
+# it. The NDI Runtime is installed by the user; this project ships no NDI file.
+NDI SDK*/
+NDI*SDK*/
+ndi-sdk/
+Processing.NDI.*
+libndi*
+*ndi*.dll
+
+# Local research material, logs and captures: never committed.
+_private/
+test/evidence/
+logs/
+*.log
+*.pcap
+*.pcapng
+
+# Secrets / local config (there should be none).
+.env
+.env.*
+*.local
+.npmrc

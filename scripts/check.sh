@@ -88,7 +88,8 @@ node -e '
   const files = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))[0].files.map((f) => f.path);
   const must = ["package.json", "README.md", "LICENSE.md", "THIRD-PARTY-NOTICES.md", "CHANGELOG.md",
     "nodes/ndi-thumbnail.js", "nodes/ndi-thumbnail.html", "nodes/ndi-live.js", "nodes/ndi-live.html",
-    "lib/host.js", "lib/host-client.js", "lib/vendor/jpeg-encoder.js", "lib/vendor/jpeg-js.LICENSE", "lib/vendor/PROVENANCE.md"];
+    "lib/host.js", "lib/host-client.js", "lib/vendor/jpeg-encoder.js", "lib/vendor/jpeg-js.LICENSE", "lib/vendor/PROVENANCE.md",
+    "examples/thumbnail-still-on-a-web-page.json", "examples/live-preview-on-a-web-page.json"];
   const forbidden = [/(^|\/)test\//, /^native\//, /processing\.ndi/i, /libndi/i, /\.(h|dylib|dll|so|lib|pdb)$/i,
     /ndi-config\.v1\.json$/, /(^|\/)\.env/, /\.npmrc$/, /node_modules/];
   let bad = 0;

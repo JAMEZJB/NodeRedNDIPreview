@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 (not released yet)
+
+- Example flows for both nodes, under **Import**, **Examples** in Node-RED.
+- `ndi-live` sends its message again whenever what it knows about the NDI Runtime changes, so a flow is not left
+  showing an old answer: for example when the NDI helper answers late after Node-RED starts, or stops.
+  `msg.ndi.error` is now also set when the NDI helper has stopped.
+
 ## 0.1.0 (13 November 2026)
 
 First version.

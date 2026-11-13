@@ -1,0 +1,49 @@
+[
+  {
+    "id": "b2c0de0000000001", "type": "comment", "name": "NDI live preview on a web page: read me",
+    "info": "Shows a live, silent preview of an NDI source on a small web page at\n`<httpNodeRoot>/ndi-example/live` (with default settings: http://<node-red>:1880/ndi-example/live).\n\n1. Open the **ndi live** node, press **Find sources** and pick your source (the example name is made up).\n2. Deploy, then open the page. The node connects to the source only while someone is watching.\n3. **stop** ends every viewer and refuses new ones; **start** allows them again.\n\nThe node sends the path of its stream when the flow starts; the page uses that path in an `<img>` tag.\nThe same `<img>` works in any dashboard template.\nAnyone who can reach Node-RED's HTTP endpoints can watch, unless your settings set `httpNodeAuth`.\n\nNeeds the NDI Runtime on the Node-RED computer (https://ndi.video/tools/).",
+    "x": 220, "y": 60, "wires": []
+  },
+  {
+    "id": "b2c0de0000000002", "type": "inject", "name": "stop", "props": [{ "p": "payload" }],
+    "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "stop", "payloadType": "str",
+    "x": 130, "y": 140, "wires": [["b2c0de0000000004"]]
+  },
+  {
+    "id": "b2c0de0000000003", "type": "inject", "name": "start", "props": [{ "p": "payload" }],
+    "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "start", "payloadType": "str",
+    "x": 130, "y": 180, "wires": [["b2c0de0000000004"]]
+  },
+  {
+    "id": "b2c0de0000000004", "type": "ndi-live", "name": "", "source": "EXAMPLE-PC (Camera 1)", "address": "",
+    "fps": 10, "width": 640, "quality": 60, "bandwidth": "lowest", "maxViewers": 4, "timeout": 5,
+    "x": 320, "y": 160, "wires": [["b2c0de0000000005", "b2c0de0000000006"]]
+  },
+  {
+    "id": "b2c0de0000000005", "type": "change", "name": "remember the stream path",
+    "rules": [{ "t": "set", "p": "ndiExampleLive", "pt": "flow", "to": "payload", "tot": "msg" }],
+    "action": "", "property": "", "from": "", "to": "", "reg": false,
+    "x": 560, "y": 140, "wires": [[]]
+  },
+  {
+    "id": "b2c0de0000000006", "type": "debug", "name": "preview details", "active": true, "tosidebar": true,
+    "console": false, "tostatus": false, "complete": "ndi", "targetType": "msg", "statusVal": "", "statusType": "auto",
+    "x": 540, "y": 180, "wires": []
+  },
+  {
+    "id": "b2c0de0000000007", "type": "http in", "name": "", "url": "/ndi-example/live", "method": "get",
+    "upload": false, "swaggerDoc": "",
+    "x": 160, "y": 260, "wires": [["b2c0de0000000008"]]
+  },
+  {
+    "id": "b2c0de0000000008", "type": "template", "name": "preview page", "field": "payload", "fieldType": "msg",
+    "format": "html", "syntax": "mustache", "output": "str",
+    "template": "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>NDI preview</title>\n<style>\n  body { margin: 0; background: #111; color: #ddd; font: 14px system-ui, sans-serif; }\n  img { display: block; width: 100%; max-width: 960px; margin: 0 auto; background: #000; }\n  p { text-align: center; }\n</style>\n</head>\n<body>\n{{#flow.ndiExampleLive}}<img src=\"{{{flow.ndiExampleLive}}}\" alt=\"Live NDI preview\">{{/flow.ndiExampleLive}}\n{{^flow.ndiExampleLive}}<p>The preview is not ready yet: deploy the flow, then reload this page.</p>{{/flow.ndiExampleLive}}\n</body>\n</html>\n",
+    "x": 370, "y": 260, "wires": [["b2c0de0000000009"]]
+  },
+  {
+    "id": "b2c0de0000000009", "type": "http response", "name": "",
+    "statusCode": "", "headers": { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    "x": 570, "y": 260, "wires": []
+  }
+]

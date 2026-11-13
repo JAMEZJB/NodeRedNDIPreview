@@ -16,6 +16,7 @@ const BOUNDARY = "ndipreviewframe";
 const STOP_GRACE_MS = 5000;
 const FRESH_MS = 2000;
 const STUCK_MS = 10000;          // a viewer that has not taken a frame for this long is disconnected
+const HOST_STOPPED = "the NDI helper has stopped; restart Node-RED";
 const liveNodes = new Map();
 let routed = false;
 
@@ -81,14 +82,27 @@ module.exports = function (RED) {
     }
 
     function info() {
+      const error = hostFailed ? HOST_STOPPED : rt && !rt.ok ? rt.error : null;
       return {
         payload: streamUrl,
         ndi: {
           source: source.name || source.address, stream: streamUrl, still: stillUrl, viewers: viewers.size,
           live: streaming, paused, maxViewers, fps, width, bandwidth, runtime: rt ? rt.version || null : null,
-          ...(rt && !rt.ok ? { error: rt.error } : {}),
+          ...(error ? { error } : {}),
         },
       };
+    }
+
+    // The node sends info() when the flow starts, and again whenever what it says about the NDI Runtime changes
+    // (for example the helper answered late, or stopped), so a flow showing it never keeps a stale answer.
+    let announced = null;
+    function announce() {
+      if (closed) return;
+      const { runtime, error } = info().ndi;
+      const key = JSON.stringify([runtime, error || null]);
+      if (key === announced) return;
+      announced = key;
+      node.send(info());
     }
 
     function startStream() {
@@ -99,7 +113,7 @@ module.exports = function (RED) {
       showStatus();
       client.liveStart(node.id, { source, bandwidth, fps, width, quality, label, timeoutMs }).catch((e) => {
         if (closed) return;
-        if (e.code === "ENORUNTIME") rt = { ok: false, error: e.message };
+        if (e.code === "ENORUNTIME") { rt = { ok: false, error: e.message }; announce(); }
         node.warn(`NDI live "${source.name || source.address}": ${e.message}`);
         stopStream();
         endViewers();
@@ -146,7 +160,7 @@ module.exports = function (RED) {
     }
     function onHostState(s, why) {
       if (closed) return;
-      if (s === "failed") { hostFailed = true; node.error(why); stopStream(); endViewers(); }
+      if (s === "failed") { hostFailed = true; node.error(why); stopStream(); endViewers(); announce(); }
     }
     client.on("frame", onFrame);
     client.on("liveStatus", onLiveStatus);
@@ -223,12 +237,11 @@ module.exports = function (RED) {
 
     liveNodes.set(node.id, node);
     node.status(CHECKING);
-    let announced = false;
     watchRuntime(RED, () => closed, (r) => {
       if (r.ok || !r.host || r.failed) rt = r;               // a host hiccup is not final: it is checked again
       if (r.failed) hostFailed = true;
       if (!r.ok && r.host && !r.failed) node.status(statusForRuntime(r)); else showStatus();
-      if (!announced) { announced = true; node.send(info()); }   // tells the flow where the preview is
+      announce();                                            // tells the flow where the preview is
     });
   }
 

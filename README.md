@@ -53,8 +53,10 @@ Serves the source as Motion-JPEG on Node-RED's HTTP node server (the same place 
   dashboard template;
 - `<httpNodeRoot>/ndi-live/<node id>.jpg`: one still.
 
-It sends the path once when the flow starts and in reply to every message. Defaults: 10 frames a second (at most
-15), 640 pixels wide, at most 4 viewers. It is a preview, not a programme monitor: no sound, a fraction of a second
+It sends the path when the flow starts, again whenever what it knows about the NDI Runtime changes, and in reply to
+every message. `msg.ndi.runtime` is the runtime's version, or `null` when there is none yet; `msg.ndi.error` says why
+the preview cannot work (no NDI Runtime, or the NDI helper has stopped). `null` with no error means it is still being
+checked. Defaults: 10 frames a second (at most 15), 640 pixels wide, at most 4 viewers. It is a preview, not a programme monitor: no sound, a fraction of a second
 behind live.
 
 The connection to the source opens when the first viewer starts watching and closes a few seconds after the last
@@ -64,6 +66,14 @@ viewer and refuse new ones, `"start"` to allow them again.
 
 **Who can watch:** the endpoints sit behind Node-RED's `httpNodeAuth` if your settings set it. Without it, anyone
 who can reach Node-RED's HTTP endpoints can watch.
+
+### Examples
+
+In Node-RED: **Import**, **Examples**, `@jamezjb/node-red-ndi-preview`. Each example shows one node on a small web page
+made with core nodes only: *thumbnail-still-on-a-web-page* serves the newest still at
+`<httpNodeRoot>/ndi-example/still.jpg`, and *live-preview-on-a-web-page* shows the live preview at
+`<httpNodeRoot>/ndi-example/live`. Pick your source in the NDI node after importing; the source name in the examples
+is made up.
 
 ### Both nodes
 

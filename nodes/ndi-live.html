@@ -85,11 +85,14 @@
       <code>true</code> allows them again. Any message is answered with the output below.</dd>
   </dl>
   <h3>Outputs</h3>
-  <p>Once when the flow starts, and for each input:</p>
+  <p>When the flow starts, whenever what the node knows about the NDI Runtime changes, and for each input:</p>
   <dl class="message-properties">
     <dt>payload <span class="property-type">string</span></dt><dd>the path of the live picture.</dd>
     <dt>ndi <span class="property-type">object</span></dt>
-    <dd><code>{source, stream, still, viewers, live, paused, maxViewers, fps, width, bandwidth, runtime}</code>.</dd>
+    <dd><code>{source, stream, still, viewers, live, paused, maxViewers, fps, width, bandwidth, runtime}</code>, and
+      <code>error</code> when the preview cannot work (no NDI Runtime, or the NDI helper has stopped).
+      <code>runtime</code> is the runtime's version, or <code>null</code> when there is none yet; <code>null</code>
+      with no <code>error</code> means it is still being checked.</dd>
   </dl>
   <h3>Details</h3>
   <p><i>Proxy</i> asks the sender for its low-bandwidth stream; <i>Full</i> can put over 100 Mb/s per camera on the

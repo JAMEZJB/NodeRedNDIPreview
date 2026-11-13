@@ -1,0 +1,48 @@
+[
+  {
+    "id": "a1c0de0000000001", "type": "comment", "name": "NDI still on a web page: read me",
+    "info": "Takes a JPEG still of an NDI source every 5 seconds and serves the newest one at\n`<httpNodeRoot>/ndi-example/still.jpg` (with default settings: http://<node-red>:1880/ndi-example/still.jpg).\n\n1. Open the **ndi thumbnail** node, press **Find sources** and pick your source (the example name is made up).\n2. Deploy. The debug sidebar shows each still's statistics (`msg.ndi`).\n3. Use **stop** and **start** to pause and resume (stop also disconnects from the source).\n\nWhile no picture arrives, the endpoint answers 503 instead of showing an old picture.\nAnyone who can reach Node-RED's HTTP endpoints can open the still, unless your settings set `httpNodeAuth`.\n\nNeeds the NDI Runtime on the Node-RED computer (https://ndi.video/tools/).",
+    "x": 210, "y": 60, "wires": []
+  },
+  {
+    "id": "a1c0de0000000002", "type": "inject", "name": "stop", "props": [{ "p": "payload" }],
+    "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "stop", "payloadType": "str",
+    "x": 130, "y": 140, "wires": [["a1c0de0000000004"]]
+  },
+  {
+    "id": "a1c0de0000000003", "type": "inject", "name": "start", "props": [{ "p": "payload" }],
+    "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "start", "payloadType": "str",
+    "x": 130, "y": 180, "wires": [["a1c0de0000000004"]]
+  },
+  {
+    "id": "a1c0de0000000004", "type": "ndi-thumbnail", "name": "", "source": "EXAMPLE-PC (Camera 1)", "address": "",
+    "interval": 5, "width": 320, "quality": 70, "bandwidth": "lowest", "idle": 30, "timeout": 3,
+    "x": 330, "y": 160, "wires": [["a1c0de0000000005", "a1c0de0000000006"]]
+  },
+  {
+    "id": "a1c0de0000000005", "type": "change", "name": "keep the newest still",
+    "rules": [{ "t": "set", "p": "ndiExampleStill", "pt": "flow", "to": "payload", "tot": "msg" }],
+    "action": "", "property": "", "from": "", "to": "", "reg": false,
+    "x": 560, "y": 140, "wires": [[]]
+  },
+  {
+    "id": "a1c0de0000000006", "type": "debug", "name": "still statistics", "active": true, "tosidebar": true,
+    "console": false, "tostatus": false, "complete": "ndi", "targetType": "msg", "statusVal": "", "statusType": "auto",
+    "x": 550, "y": 180, "wires": []
+  },
+  {
+    "id": "a1c0de0000000007", "type": "http in", "name": "", "url": "/ndi-example/still.jpg", "method": "get",
+    "upload": false, "swaggerDoc": "",
+    "x": 170, "y": 260, "wires": [["a1c0de0000000008"]]
+  },
+  {
+    "id": "a1c0de0000000008", "type": "function", "name": "newest still, or 503",
+    "func": "const still = flow.get(\"ndiExampleStill\");\nif (!Buffer.isBuffer(still)) {\n    msg.statusCode = 503;\n    msg.headers = { \"Content-Type\": \"text/plain\", \"Retry-After\": \"5\", \"Cache-Control\": \"no-store\" };\n    msg.payload = \"No picture from the NDI source yet.\";\n    return msg;\n}\nmsg.statusCode = 200;\nmsg.headers = { \"Content-Type\": \"image/jpeg\", \"Cache-Control\": \"no-store\" };\nmsg.payload = still;\nreturn msg;",
+    "outputs": 1, "timeout": 0, "noerr": 0, "initialize": "", "finalize": "", "libs": [],
+    "x": 400, "y": 260, "wires": [["a1c0de0000000009"]]
+  },
+  {
+    "id": "a1c0de0000000009", "type": "http response", "name": "", "statusCode": "", "headers": {},
+    "x": 590, "y": 260, "wires": []
+  }
+]

@@ -1,6 +1,6 @@
 {
   "name": "@jamezjb/node-red-ndi-preview",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node-RED nodes that show NDI® sources: JPEG stills with frame statistics, and a live preview. Needs the NDI Runtime installed separately (ndi.video); contains no NDI code.",
   "keywords": [
     "node-red",
@@ -34,6 +34,7 @@
   "files": [
     "nodes/",
     "lib/",
+    "examples/",
     "prebuilds/darwin-universal/ndi_preview.node",
     "prebuilds/win32-x64/ndi_preview.node",
     "README.md",

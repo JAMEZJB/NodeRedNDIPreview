@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1 (not released yet)
+## 0.1.1 (13 November 2026)
 
 - Example flows for both nodes, under **Import**, **Examples** in Node-RED.
 - `ndi-live` sends its message again whenever what it knows about the NDI Runtime changes, so a flow is not left

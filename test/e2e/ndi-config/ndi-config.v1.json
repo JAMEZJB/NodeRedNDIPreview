@@ -1,0 +1,11 @@
+{
+  "ndi": {
+    "networks": { "ips": "", "discovery": "127.0.0.1" },
+    "adapters": { "allowed": ["127.0.0.1"] },
+    "groups": { "send": "loopback-test", "recv": "loopback-test" },
+    "tcp": { "recv": { "enable": true } },
+    "rudp": { "recv": { "enable": false } },
+    "multicast": { "send": { "enable": false }, "recv": { "enable": false } },
+    "unicast": { "recv": { "enable": true } }
+  }
+}

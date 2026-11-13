@@ -1,0 +1,52 @@
+{
+  "name": "@jamezjb/node-red-ndi-preview",
+  "version": "0.1.0",
+  "description": "Node-RED nodes that show NDI® sources: JPEG stills with frame statistics, and a live preview. Needs the NDI Runtime installed separately (ndi.video); contains no NDI code.",
+  "keywords": [
+    "node-red",
+    "ndi",
+    "video",
+    "preview",
+    "thumbnail",
+    "camera"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "author": "James Breedon",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JAMEZJB/NodeRedNDIPreview.git"
+  },
+  "homepage": "https://github.com/JAMEZJB/NodeRedNDIPreview#readme",
+  "bugs": {
+    "url": "https://github.com/JAMEZJB/NodeRedNDIPreview/issues"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "node-red": {
+    "version": ">=3.1.0",
+    "nodes": {
+      "ndi-thumbnail": "nodes/ndi-thumbnail.js",
+      "ndi-live": "nodes/ndi-live.js"
+    }
+  },
+  "files": [
+    "nodes/",
+    "lib/",
+    "prebuilds/darwin-universal/ndi_preview.node",
+    "prebuilds/win32-x64/ndi_preview.node",
+    "README.md",
+    "LICENSE.md",
+    "THIRD-PARTY-NOTICES.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bash native/build-mac.sh",
+    "test": "bash scripts/check.sh --unit",
+    "check": "bash scripts/check.sh"
+  },
+  "devDependencies": {
+    "node-red": "5.0.9"
+  }
+}

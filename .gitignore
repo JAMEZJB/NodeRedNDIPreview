@@ -34,3 +34,6 @@ logs/
 .env.*
 *.local
 .npmrc
+
+# Built add-ons: built on macOS and Windows at release time and shipped in the npm package, not committed.
+prebuilds/

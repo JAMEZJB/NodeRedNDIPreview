@@ -1,0 +1,126 @@
+<script type="text/javascript">
+  (function () {
+    // Shared by both NDI preview nodes: the runtime banner and the "Find sources" picker.
+    window.NdiPreviewEditor = window.NdiPreviewEditor || {
+      runtimeBanner: function (el) {
+        function show(rt) {
+          if (rt.ok) { el.text("NDI Runtime " + rt.version).css({ opacity: 0.7, color: "" }); return; }
+          var text = rt.unsupported ? $("<span>").text(rt.error + ".")
+            : $("<span>").append("<b>The NDI Runtime is not installed on the Node-RED computer.</b> Install the NDI 6 Runtime " +
+              '(or NDI Tools) from <a href="https://ndi.video/tools/" target="_blank" rel="noopener">ndi.video</a>, then restart ' +
+              "Node-RED. These nodes do not include NDI. ")
+              .append($('<a href="#">').text("Check again").on("click", function (e) { e.preventDefault(); load("?refresh=1"); }));
+          el.empty().append(text).css({ opacity: 1, color: "var(--red-ui-text-color-error, #c00)" });
+        }
+        function load(q) {
+          el.text("Checking for the NDI Runtime…");
+          $.getJSON("ndi-preview/runtime" + (q || "")).done(show).fail(function () { el.text("Could not check for the NDI Runtime."); });
+        }
+        load("");
+      },
+      sourcePicker: function (button, select, input) {
+        button.on("click", function () {
+          select.empty().append($("<option>").text("Searching…"));
+          $.getJSON("ndi-preview/sources").done(function (list) {
+            select.empty().append($("<option>").val("").text(list.length ? "Pick a source…" : "No NDI sources found"));
+            list.forEach(function (s) {
+              select.append($("<option>").val(s.name).text(s.name + (s.address ? "  (" + s.address + ")" : "")));
+            });
+          }).fail(function (x) {
+            var msg = (x.responseJSON && x.responseJSON.error) || "search failed";
+            select.empty().append($("<option>").val("").text("Search failed: " + msg));
+          });
+        });
+        select.on("change", function () { if (this.value) input.val(this.value); });
+      },
+    };
+  })();
+
+  RED.nodes.registerType("ndi-thumbnail", {
+    category: "network",
+    color: "#3BC3AB",
+    defaults: {
+      name: { value: "" },
+      source: { value: "" },
+      address: { value: "" },
+      interval: { value: 5, validate: RED.validators.number(true) },
+      width: { value: 320, validate: RED.validators.number() },
+      quality: { value: 70, validate: RED.validators.number() },
+      bandwidth: { value: "lowest" },
+      idle: { value: 30, validate: RED.validators.number(true) },
+      timeout: { value: 3, validate: RED.validators.number() },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-camera",
+    paletteLabel: "ndi thumbnail",
+    label: function () { return this.name || this.source || this.address || "ndi thumbnail"; },
+    oneditprepare: function () {
+      NdiPreviewEditor.runtimeBanner($("#ndi-thumb-runtime"));
+      NdiPreviewEditor.sourcePicker($("#ndi-thumb-find"), $("#ndi-thumb-found"), $("#node-input-source"));
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="ndi-thumbnail">
+  <div class="form-row" id="ndi-thumb-runtime">Checking for the NDI Runtime…</div>
+  <div class="form-row"><label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name"></div>
+  <div class="form-row"><label for="node-input-source"><i class="fa fa-video-camera"></i> Source</label>
+    <input type="text" id="node-input-source" placeholder="COMPUTER (Source name)"></div>
+  <div class="form-row"><label></label>
+    <button type="button" class="red-ui-button" id="ndi-thumb-find">Find sources</button>
+    <select id="ndi-thumb-found" style="width:60%"></select></div>
+  <div class="form-row"><label for="node-input-address"><i class="fa fa-plug"></i> Address</label>
+    <input type="text" id="node-input-address" placeholder="optional ip:port, to connect without discovery"></div>
+  <div class="form-row"><label for="node-input-interval"><i class="fa fa-clock-o"></i> Every</label>
+    <input type="text" id="node-input-interval" style="width:60px"> s <span style="opacity:.7">(0 = only when a message arrives)</span></div>
+  <div class="form-row"><label for="node-input-width"><i class="fa fa-arrows-h"></i> Width</label>
+    <input type="text" id="node-input-width" style="width:60px"> px &nbsp; Quality
+    <input type="text" id="node-input-quality" style="width:50px"></div>
+  <div class="form-row"><label for="node-input-bandwidth"><i class="fa fa-tachometer"></i> Stream</label>
+    <select id="node-input-bandwidth">
+      <option value="lowest">Proxy (lowest bandwidth)</option>
+      <option value="highest">Full (highest bandwidth: much more network traffic)</option></select></div>
+  <div class="form-row"><label for="node-input-idle"><i class="fa fa-power-off"></i> Idle drop</label>
+    <input type="text" id="node-input-idle" style="width:60px"> s &nbsp; Timeout
+    <input type="text" id="node-input-timeout" style="width:50px"> s</div>
+  <div class="form-tips">NDI® is a registered trademark of Vizrt NDI AB. More about NDI:
+    <a href="https://ndi.video/" target="_blank" rel="noopener">ndi.video</a>.</div>
+</script>
+
+<script type="text/html" data-help-name="ndi-thumbnail">
+  <p>Receives one NDI® source and outputs a JPEG still every few seconds, or on each input.</p>
+  <p><b>Needs the NDI Runtime on the Node-RED computer.</b> Install the NDI 6 Runtime (or NDI Tools) from
+    <a href="https://ndi.video/tools/">ndi.video</a>, then restart Node-RED. This node does not include NDI; without
+    the runtime it shows "NDI Runtime not installed" and does nothing else. It runs on macOS and on Windows x64.</p>
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">any</span></dt>
+    <dd>any message grabs a still now. <code>"stop"</code> or <code>false</code> pauses the timer and disconnects;
+      <code>"start"</code> or <code>true</code> resumes.</dd>
+    <dt class="optional">source <span class="property-type">string</span></dt><dd>overrides the configured source name.</dd>
+    <dt class="optional">address <span class="property-type">string</span></dt><dd>overrides the configured ip:port.</dd>
+  </dl>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">Buffer | null</span></dt>
+    <dd>the JPEG, or <code>null</code> when no picture arrived.</dd>
+    <dt>statusCode, headers</dt>
+    <dd><code>200</code> and <code>content-type: image/jpeg</code> on success, like an http request node's reply,
+      so the message can feed flows built for a camera's still-image URL.</dd>
+    <dt>ndi <span class="property-type">object</span></dt>
+    <dd><code>{source, width, height, fps, fourCC, bandwidth, lastFrame, runtime, thumbWidth, thumbHeight, bytes,
+      grabMs, connections, framesTotal, framesDropped, connectedForMs}</code>, or <code>{source, error, misses}</code>
+      when no picture arrived. <code>width</code> and <code>height</code> are those of the stream received: with
+      <i>Proxy</i> that is the sender's low-bandwidth stream (often 640×360), not the camera's own format.</dd>
+  </dl>
+  <h3>Details</h3>
+  <p>The connection to the source stays open while stills are taken within <i>Idle drop</i> seconds of each other
+    (a timer faster than that keeps it open); otherwise it connects for each still, which takes about 0.1–1 s.
+    <i>Proxy</i> asks the sender for its low-bandwidth stream. The node never sets tally, so it never lights a
+    camera's on-air lamp.</p>
+  <p>All NDI work runs in a separate helper process, so a problem in the NDI Runtime cannot stop Node-RED. Nodes
+    that show the same source share one connection to it.</p>
+  <p>NDI® is a registered trademark of Vizrt NDI AB. <a href="https://ndi.video/">ndi.video</a></p>
+</script>

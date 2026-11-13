@@ -1,0 +1,98 @@
+<script type="text/javascript">
+  RED.nodes.registerType("ndi-live", {
+    category: "network",
+    color: "#3BC3AB",
+    defaults: {
+      name: { value: "" },
+      source: { value: "" },
+      address: { value: "" },
+      fps: { value: 10, validate: RED.validators.number() },
+      width: { value: 640, validate: RED.validators.number() },
+      quality: { value: 60, validate: RED.validators.number() },
+      bandwidth: { value: "lowest" },
+      maxViewers: { value: 4, validate: RED.validators.number() },
+      timeout: { value: 5, validate: RED.validators.number() },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-video-camera",
+    paletteLabel: "ndi live",
+    label: function () { return this.name || this.source || this.address || "ndi live"; },
+    oneditprepare: function () {
+      // NdiPreviewEditor comes from the ndi-thumbnail editor file, which Node-RED loads with this one.
+      if (window.NdiPreviewEditor) {
+        NdiPreviewEditor.runtimeBanner($("#ndi-live-runtime"));
+        NdiPreviewEditor.sourcePicker($("#ndi-live-find"), $("#ndi-live-found"), $("#node-input-source"));
+      }
+      $("#ndi-live-url").text("ndi-live/" + this.id + ".mjpg");
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="ndi-live">
+  <div class="form-row" id="ndi-live-runtime">Checking for the NDI Runtime…</div>
+  <div class="form-row"><label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name"></div>
+  <div class="form-row"><label for="node-input-source"><i class="fa fa-video-camera"></i> Source</label>
+    <input type="text" id="node-input-source" placeholder="COMPUTER (Source name)"></div>
+  <div class="form-row"><label></label>
+    <button type="button" class="red-ui-button" id="ndi-live-find">Find sources</button>
+    <select id="ndi-live-found" style="width:60%"></select></div>
+  <div class="form-row"><label for="node-input-address"><i class="fa fa-plug"></i> Address</label>
+    <input type="text" id="node-input-address" placeholder="optional ip:port, to connect without discovery"></div>
+  <div class="form-row"><label for="node-input-fps"><i class="fa fa-film"></i> Frame rate</label>
+    <input type="text" id="node-input-fps" style="width:50px"> per second <span style="opacity:.7">(1–15)</span></div>
+  <div class="form-row"><label for="node-input-width"><i class="fa fa-arrows-h"></i> Width</label>
+    <input type="text" id="node-input-width" style="width:60px"> px &nbsp; Quality
+    <input type="text" id="node-input-quality" style="width:50px"></div>
+  <div class="form-row"><label for="node-input-bandwidth"><i class="fa fa-tachometer"></i> Stream</label>
+    <select id="node-input-bandwidth">
+      <option value="lowest">Proxy (lowest bandwidth)</option>
+      <option value="highest">Full (highest bandwidth: much more network traffic)</option></select></div>
+  <div class="form-row"><label for="node-input-maxViewers"><i class="fa fa-users"></i> Viewers</label>
+    <input type="text" id="node-input-maxViewers" style="width:50px"> at most &nbsp; Timeout
+    <input type="text" id="node-input-timeout" style="width:50px"> s</div>
+  <div class="form-row"><label><i class="fa fa-link"></i> Preview at</label>
+    <code id="ndi-live-url"></code> <span style="opacity:.7">(under Node-RED's HTTP node path)</span></div>
+  <div class="form-tips">Anyone who can reach Node-RED's HTTP endpoints can watch this preview. Protect them with
+    <code>httpNodeAuth</code> if that matters.<br>
+    NDI® is a registered trademark of Vizrt NDI AB. More about NDI:
+    <a href="https://ndi.video/" target="_blank" rel="noopener">ndi.video</a>.</div>
+</script>
+
+<script type="text/html" data-help-name="ndi-live">
+  <p>A silent, low-latency live preview of one NDI® source, for checking a picture in a browser. It is a preview,
+    not a programme monitor: a few frames a second, no sound.</p>
+  <p><b>Needs the NDI Runtime on the Node-RED computer.</b> Install the NDI 6 Runtime (or NDI Tools) from
+    <a href="https://ndi.video/tools/">ndi.video</a>, then restart Node-RED. This node does not include NDI. It runs on
+    macOS and on Windows x64.</p>
+  <h3>Where to watch</h3>
+  <p>The node serves the picture on Node-RED's HTTP node server (the same place as <i>http in</i> nodes):</p>
+  <ul>
+    <li><code>ndi-live/&lt;node id&gt;.mjpg</code>: the live picture. Show it with <code>&lt;img src="…"&gt;</code>
+      in any browser or dashboard template.</li>
+    <li><code>ndi-live/&lt;node id&gt;.jpg</code>: one still of the same picture.</li>
+  </ul>
+  <p>The connection to the source opens when the first viewer starts watching and closes a few seconds after the
+    last one stops, so an unwatched preview uses no network and no processor time. Each frame is encoded once for
+    all viewers. A viewer on a slow connection skips frames instead of falling behind.</p>
+  <p>The endpoints are protected by <code>httpNodeAuth</code> if your Node-RED settings set it; without it, anyone
+    who can reach Node-RED can watch.</p>
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">any</span></dt>
+    <dd><code>"stop"</code> or <code>false</code> ends every viewer and refuses new ones; <code>"start"</code> or
+      <code>true</code> allows them again. Any message is answered with the output below.</dd>
+  </dl>
+  <h3>Outputs</h3>
+  <p>Once when the flow starts, and for each input:</p>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt><dd>the path of the live picture.</dd>
+    <dt>ndi <span class="property-type">object</span></dt>
+    <dd><code>{source, stream, still, viewers, live, paused, maxViewers, fps, width, bandwidth, runtime}</code>.</dd>
+  </dl>
+  <h3>Details</h3>
+  <p><i>Proxy</i> asks the sender for its low-bandwidth stream; <i>Full</i> can put over 100 Mb/s per camera on the
+    network. The node never sets tally. Nodes that show the same source share one connection to it.</p>
+  <p>NDI® is a registered trademark of Vizrt NDI AB. <a href="https://ndi.video/">ndi.video</a></p>
+</script>

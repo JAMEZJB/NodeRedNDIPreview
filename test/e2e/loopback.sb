@@ -1,0 +1,12 @@
+(version 1)
+; Loopback-only sandbox for every NDI test process (the test computer may be connected to a live network).
+; Outbound traffic is denied except to loopback, and the Bonjour (mDNS) daemon is denied, so nothing is advertised
+; or browsed on any real network.
+; Known limit: the NDI Runtime opens its listening sockets on all interfaces, and a sandbox profile cannot restrict
+; a listen to loopback ("localhost" also matches an all-interfaces listen). Nothing advertises those sockets (no
+; mDNS, discovery only on 127.0.0.1), and run-mac.sh fails the run if any process makes a non-loopback connection.
+(allow default)
+(deny network-outbound)
+(allow network-outbound (remote ip "localhost:*"))
+(deny network-outbound (literal "/private/var/run/mDNSResponder"))
+(deny mach-lookup (global-name "com.apple.mDNSResponder"))

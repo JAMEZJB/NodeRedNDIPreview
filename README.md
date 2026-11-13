@@ -8,7 +8,14 @@ Node-RED nodes that show NDI® sources:
 NDI® is a registered trademark of Vizrt NDI AB. This project is not affiliated with or endorsed by Vizrt NDI AB;
 "NDI" in its name says only what the nodes work with. More about NDI: <https://ndi.video/>.
 
-**Not published yet.** Planned npm name: `@jamezjb/node-red-ndi-preview`.
+## Install
+
+In Node-RED: **Manage palette**, **Install**, search for `@jamezjb/node-red-ndi-preview`. Or, in your Node-RED user
+folder (usually `~/.node-red`):
+
+    npm install @jamezjb/node-red-ndi-preview
+
+Then restart Node-RED.
 
 ## What you need
 

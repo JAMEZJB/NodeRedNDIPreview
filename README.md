@@ -91,6 +91,31 @@ is made up.
   for Node-RED does not block. Your own NDI settings (groups, discovery server, extra IPs) still apply. If you set
   `NDI_CONFIG_DIR` yourself, your configuration is used unchanged.
 
+## Troubleshooting
+
+Every node has a checkbox, **Verbose logging (for troubleshooting)**, off by default and saved with the flow.
+Tick it on the node that misbehaves (or on all of them), deploy, and repeat the problem. Every step then appears in
+Node-RED's own log (the terminal or service log that Node-RED writes, at its default `info` level; nothing to
+configure), one line per event, each starting with an area in square brackets:
+
+    [config] ndi-thumbnail "stage cam" started: source "STAGE-PC (Camera 1)", a still every 5 s, 320 px wide, ...
+    [host] process 4120 exited (signal SIGKILL) after 1.5 s; 1 request waiting for it will fail (grab (source "STAGE-PC (Camera 1)", ...))
+    [receiver] "STAGE-PC (Camera 1)": first frame 1280x720 UYVY at 25 frames/s, 120 ms after connecting
+    [frame] still asked by message (topic "snap"): "STAGE-PC (Camera 1)" -> 5.2 KB, 320x180 (stream 1280x720 UYVY), 83 ms in all
+    [http] viewer 192.0.2.7 connected to the live stream (viewers now 1 of 4)
+
+The areas are `[config]` (settings in use), `[host]` (the NDI helper process: start, exit, restarts, each request
+and its answer in milliseconds, where the NDI Runtime was found), `[discovery]` (sources that appeared or went),
+`[receiver]` (connections to sources, first frame, format changes, a summary every 10 seconds), `[frame]` (each
+still, and a live frame-rate summary), `[live]` (the live streams in the helper) and `[http]` (viewers and requests
+to the live endpoints). The NDI helper is shared by every node, so its lines (`[host]`, `[discovery]`, `[receiver]`,
+`[live]`) cover all nodes while any one of them has the box ticked. Busy flows stay readable: a line that repeats is
+shown at most once a second (once every 10 seconds for stills on a timer and for a source that keeps failing) with a
+count of those left out, and frames are summarised, never listed. The log never contains pictures, message payloads or
+credentials; it does contain source names and addresses. Turn the checkbox off when you have what you need. With it
+off, the log has only what it always had: the NDI helper starting, the NDI Runtime it found, and warnings and errors,
+each with its cause.
+
 ## Building from source
 
 The add-on is a small C file (`native/ndi_preview.c`) using Node-API. It loads the NDI Runtime the user installed

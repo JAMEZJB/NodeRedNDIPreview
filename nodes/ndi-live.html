@@ -12,6 +12,7 @@
       bandwidth: { value: "lowest" },
       maxViewers: { value: 4, validate: RED.validators.number() },
       timeout: { value: 5, validate: RED.validators.number() },
+      verbose: { value: false },
     },
     inputs: 1,
     outputs: 1,
@@ -54,6 +55,10 @@
     <input type="text" id="node-input-timeout" style="width:50px"> s</div>
   <div class="form-row"><label><i class="fa fa-link"></i> Preview at</label>
     <code id="ndi-live-url"></code> <span style="opacity:.7">(under Node-RED's HTTP node path)</span></div>
+  <div class="form-row"><label></label>
+    <input type="checkbox" id="node-input-verbose" style="display:inline-block; width:auto; vertical-align:top; margin:0 6px 0 0">
+    <label for="node-input-verbose" style="width:auto">Verbose logging (for troubleshooting)</label>
+    <div style="opacity:.7; margin-left:105px">Records every step in the Node-RED log so a problem can be traced. Turn it off when you have what you need.</div></div>
   <div class="form-tips">Anyone who can reach Node-RED's HTTP endpoints can watch this preview. Protect them with
     <code>httpNodeAuth</code> if that matters.<br>
     NDI® is a registered trademark of Vizrt NDI AB. More about NDI:

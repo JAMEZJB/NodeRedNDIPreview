@@ -23,7 +23,8 @@ const flows = Object.fromEntries(files.map((f) => [f, JSON.parse(fs.readFileSync
 function editorDefaults(type) {
   const html = fs.readFileSync(path.join(ROOT, "nodes", `${type}.html`), "utf8");
   const block = html.match(/defaults:\s*\{([\s\S]*?)\n\s*\},/)[1];
-  return [...block.matchAll(/^\s*([A-Za-z]+):\s*\{/gm)].map((m) => m[1]).sort();
+  // "verbose" is left out of the examples on purpose: a flow without it means off
+  return [...block.matchAll(/^\s*([A-Za-z]+):\s*\{/gm)].map((m) => m[1]).filter((k) => k !== "verbose").sort();
 }
 
 test("there is one example for each node", () => {

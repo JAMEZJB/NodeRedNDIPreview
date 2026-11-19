@@ -10,6 +10,7 @@ async function startNodeRed(flowNodes) {
   const userDir = fs.mkdtempSync(path.join(os.tmpdir(), "ndi-preview-nr-"));
   const sink = [];
   const statuses = [];
+  const logs = [];                       // every line Node-RED logs at info level or above, as plain text
   const flows = [
     { id: "tab1", type: "tab", label: "test" },
     { id: "sink", z: "tab1", type: "function", func: "global.get('sink').push(msg); return null;", outputs: 1, wires: [[]] },
@@ -29,7 +30,10 @@ async function startNodeRed(flowNodes) {
     functionGlobalContext: { sink, statuses }, credentialSecret: false,
     editorTheme: { tours: false }, diagnostics: { enabled: false }, telemetry: { enabled: false },
     externalModules: { autoInstall: false, palette: { allowInstall: false } },
-    logging: { console: { level: process.env.NR_LOG_LEVEL || "error" } },
+    logging: {
+      console: { level: process.env.NR_LOG_LEVEL || "error" },
+      capture: { level: "info", metrics: false, handler: () => (m) => { if (typeof m.msg === "string") logs.push(m.msg); } },
+    },
   };
   RED.init(server, settings);
   app.use(settings.httpAdminRoot, RED.httpAdmin);
@@ -39,7 +43,7 @@ async function startNodeRed(flowNodes) {
   const port = server.address().port;
   const base = `http://127.0.0.1:${port}`;
   return {
-    RED, sink, statuses, base, port,
+    RED, sink, statuses, logs, base, port,
     async stop() {
       await RED.stop();
       await new Promise((r) => server.close(r));

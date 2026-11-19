@@ -1,6 +1,6 @@
 {
   "name": "@jamezjb/node-red-ndi-preview",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Node-RED nodes that show NDI® sources: JPEG stills with frame statistics, and a live preview. Needs the NDI Runtime installed separately (ndi.video); contains no NDI code.",
   "keywords": [
     "node-red",

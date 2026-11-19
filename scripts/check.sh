@@ -52,7 +52,10 @@ SUM=$(shasum -a 256 lib/vendor/jpeg-encoder.js | awk '{print $1}')
 
 step "unit tests (synthetic add-on, no NDI, loopback guard)"
 REPORT="$(mktemp "${TMPDIR:-/tmp}/ndi-preview-netguard.XXXXXX")"
-NETGUARD_REPORT="$REPORT" NODE_OPTIONS="-r $HERE/test/netguard.js" node --test test/unit/*.test.js || fail "unit tests"
+# The synthetic add-on is the default for every unit test, and test/unit-guard.js refuses the real add-on, the NDI
+# host without the synthetic one, and any program other than node: a unit test must never load the real NDI library.
+NDI_PREVIEW_TEST_ADDON="$HERE/test/fixtures/fake-addon.js" NETGUARD_REPORT="$REPORT" \
+  NODE_OPTIONS="-r $HERE/test/netguard.js -r $HERE/test/unit-guard.js" node --test test/unit/*.test.js || fail "unit tests"
 if [ -s "$REPORT" ]; then fail "network guard violations:"; cat "$REPORT"; fi
 rm -f "$REPORT"
 if pgrep -f "$HERE/lib/host.js" >/dev/null; then fail "an NDI host process was left running"; pkill -f "$HERE/lib/host.js"; fi
